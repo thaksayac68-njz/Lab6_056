@@ -94,10 +94,11 @@ public class MainActivity extends AppCompatActivity {
 
                 // Create and start Thread
                 new Thread(() -> {
-                    // Load from DB (delay 4 seconds)
                     try {
+                        // Delay 2 seconds
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                     
                     // Return to main Thread for UI updates
@@ -105,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
                         loadData.setVisibility(View.GONE);
                         Intent browseNote = new Intent(getApplicationContext(), BrowseNoteActivity.class);
                         startActivity(browseNote);
-                        finish();
                     });
                 }).start();
             }
