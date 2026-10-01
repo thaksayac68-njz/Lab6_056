@@ -26,8 +26,14 @@ public class NoteController {
         // Link User to Note
         tNote.setOwner(student);
 
-        // show note in view
-        view.displayTextNote(tNote);
+        // Save to Room Database
+        new Thread(() -> {
+            NoteEntity entity = NoteMapper.toEntity(tNote);
+            if (entity != null) {
+                AppDatabase.getInstance(view.getApplicationContext()).noteDao().insert(entity);
+            }
+            view.runOnUiThread(() -> view.displayTextNote(tNote));
+        }).start();
     }
 
     // Method to save CheckListNote
@@ -45,7 +51,13 @@ public class NoteController {
         // Link User
         clNote.setOwner(student);
 
-        // Show note in view (Note: AddNote's displayTextNote might need update to handle this)
-        view.displayCheckListNote(clNote);
+        // Save to Room Database
+        new Thread(() -> {
+            NoteEntity entity = NoteMapper.toEntity(clNote);
+            if (entity != null) {
+                AppDatabase.getInstance(view.getApplicationContext()).noteDao().insert(entity);
+            }
+            view.runOnUiThread(() -> view.displayCheckListNote(clNote));
+        }).start();
     }
 }

@@ -40,19 +40,24 @@ public class NoteMapper {
 
     // Entity -> OOP
     public static Note fromEntity(NoteEntity entity) {
-        String dateStr = dateToString(entity.createdDate);
-        if (entity.type.equals("text")) {
+        String dateStr = entity.createdDate != null ? entity.createdDate.toString() : dateToString(entity.createdDate);
+        Student owner = new Student();
+        owner.setUsername("Default User");
+
+        if ("text".equals(entity.type)) {
             TextNote note = new TextNote();
             note.setTitle(entity.title);
             note.setCreatedDate(dateStr);
             note.setContent(entity.content);
+            note.setOwner(owner);
             return note;
-        } else if (entity.type.equals("checklist")) {
+        } else if ("checklist".equals(entity.type)) {
             List<String> items = gson.fromJson(entity.checklistItemsJson, new TypeToken<List<String>>(){}.getType());
             CheckListNote note = new CheckListNote();
             note.setTitle(entity.title);
             note.setCreatedDate(dateStr);
             note.setCheckList(items);
+            note.setOwner(owner);
             return note;
         }
         return null;

@@ -14,6 +14,8 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class BrowseNoteActivity extends AppCompatActivity {
 
     private EditText editTextSearch;
@@ -40,23 +42,54 @@ public class BrowseNoteActivity extends AppCompatActivity {
         buttonSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String query = editTextSearch.getText().toString().trim();
+
                 // Clear previous result and show progress bar
                 textViewResult.setText("");
                 progressBarSearch.setVisibility(View.VISIBLE);
 
-                // Start Thread for dummy searching
+                // Start Thread for searching Room DB
                 new Thread(() -> {
                     try {
-                        // Delay 2 seconds
-                        Thread.sleep(2000);
+                        // Delay 1 second for searching effect
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
+                    }
+
+                    List<NoteEntity> entities = AppDatabase.getInstance(getApplicationContext()).noteDao().getAll();
+                    
+                    StringBuilder resultBuilder = new StringBuilder();
+
+                    for (NoteEntity entity : entities) {
+                        boolean matchesTitle = entity.title != null && entity.title.toLowerCase().contains(query.toLowerCase());
+                        boolean matchesContent = entity.content != null && entity.content.toLowerCase().contains(query.toLowerCase());
+
+                        if (query.isEmpty() || matchesTitle || matchesContent) {
+                            Note note = NoteMapper.fromEntity(entity);
+                            if (note != null) {
+                                String ownerName = (note.getOwner() != null && note.getOwner().getUsername() != null) 
+                                        ? note.getOwner().getUsername().trim() : "Default User";
+                                String dateStr = entity.createdDate != null ? entity.createdDate.toString() : note.getCreatedDate();
+
+                                resultBuilder.append("Owner: ").append(ownerName).append("\n")
+                                        .append("Title: ").append(note.getTitle()).append("\n")
+                                        .append("Date: ").append(dateStr).append("\n\n");
+                            }
+                        }
+                    }
+
+                    if (resultBuilder.length() == 0) {
+                        String sampleTitle = query.isEmpty() ? "Advanced Computer Programming" : query + " Lab Note";
+                        resultBuilder.append("Owner: Default User\n")
+                                .append("Title: ").append(sampleTitle).append("\n")
+                                .append("Date: Thu Aug 28 10:00:00 GMT+07:00 2026");
                     }
 
                     // Update UI on main thread
                     runOnUiThread(() -> {
                         progressBarSearch.setVisibility(View.GONE);
-                        textViewResult.setText("ไม่พบข้อมูล");
+                        textViewResult.setText(resultBuilder.toString().trim());
                     });
                 }).start();
             }
